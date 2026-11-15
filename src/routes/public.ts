@@ -1,0 +1,16 @@
+import { Router } from 'express'; import { AppDataSource } from '../database/data-source';
+import { Section } from '../entities/Section'; import { Project } from '../entities/Project'; import { Testimonial } from '../entities/Testimonial';
+import { Curriculum } from '../entities/Curriculum'; import { Enquiry } from '../entities/Enquiry'; import { SiteSetting } from '../entities/SiteSetting';
+export const publicRoutes = Router();
+publicRoutes.get('/health', (_q,res) => res.json({ status:'ok', service:'opot-website-api' }));
+publicRoutes.get('/site', async (_q,res,next) => { try { const rows=await AppDataSource.getRepository(SiteSetting).find(); res.json(Object.fromEntries(rows.map(x=>[x.key,x.value]))); } catch(e){next(e);} });
+publicRoutes.get('/sections', async (_q,res,next) => { try { res.json(await AppDataSource.getRepository(Section).find({where:{status:'published',isVisible:true},order:{sortOrder:'ASC'}})); } catch(e){next(e);} });
+publicRoutes.get('/projects', async (q,res,next) => { try { const where:any={isPublished:true}; if(typeof q.query.category==='string') where.category=q.query.category; res.json(await AppDataSource.getRepository(Project).find({where,order:{sortOrder:'ASC',createdAt:'DESC'}})); } catch(e){next(e);} });
+publicRoutes.get('/testimonials', async (_q,res,next) => { try { res.json(await AppDataSource.getRepository(Testimonial).find({where:{status:'published'},order:{sortOrder:'ASC'}})); } catch(e){next(e);} });
+publicRoutes.get('/curriculum', async (_q,res,next) => { try { res.json(await AppDataSource.getRepository(Curriculum).find({where:{isPublished:true},order:{sortOrder:'ASC'}})); } catch(e){next(e);} });
+publicRoutes.post('/enquiries', async (q,res,next) => { try { const {name,email,message,phone,organization,subject}=q.body||{};
+ if (![name,email,message].every(v=>typeof v==='string'&&v.trim())) return res.status(400).json({message:'Name, email and message are required'});
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({message:'Enter a valid email'});
+ const row=AppDataSource.getRepository(Enquiry).create({name:name.trim(),email:email.trim(),message:message.trim(),phone,organization,subject});
+ await AppDataSource.getRepository(Enquiry).save(row); res.status(201).json({message:'Enquiry submitted'});
+ } catch(e){next(e);} });

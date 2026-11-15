@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: opot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: opot_website
+    ports:
+      - "5432:5432"
+    volumes:
+      - opot_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d opot_website"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  opot_pgdata:

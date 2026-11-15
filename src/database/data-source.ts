@@ -1,0 +1,11 @@
+import 'reflect-metadata';
+import 'dotenv/config';
+import { DataSource } from 'typeorm';
+import { Admin } from '../entities/Admin';
+import { Section } from '../entities/Section';
+import { Project } from '../entities/Project';
+import { Testimonial } from '../entities/Testimonial';
+import { Curriculum } from '../entities/Curriculum';
+import { Enquiry } from '../entities/Enquiry';
+import { SiteSetting } from '../entities/SiteSetting';
+export const AppDataSource = new DataSource({ type: 'postgres', url: process.env.DATABASE_URL, synchronize: false, logging: process.env.NODE_ENV === 'development', entities: [Admin, Section, Project, Testimonial, Curriculum, Enquiry, SiteSetting], migrations: [__dirname + '/migrations/*.{ts,js}'] });
